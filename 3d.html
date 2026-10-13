@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>淡水北海岸生態環境科學教育 - 海龜 3D 模型</title>
+    
+    <!-- 引入 Tailwind CSS 方便排版 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        /* 基礎全螢幕與隱藏滾動條設定 */
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #023e58; /* 深海藍色背景 */
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Sketchfab iframe 容器，全螢幕滿版 */
+        .sketchfab-embed-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        .sketchfab-embed-wrapper iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* 重新排版 Sketchfab 版權宣告至右下角 */
+        .sketchfab-embed-wrapper p {
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: #ffffff !important;
+        }
+
+        .sketchfab-embed-wrapper p a {
+            color: #1CAAD9 !important;
+        }
+
+        /* 淡入淡出文字樣式 (保留之前設計的黑色字+強烈白光暈) */
+        .fade-text {
+            position: absolute;
+            top: 15%; /* 放置在畫面上方一點，避免擋住海龜 */
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4vw;
+            font-weight: 900;
+            color: #000000; 
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.9), 
+                         0 0 20px rgba(255, 255, 255, 0.8), 
+                         0 0 40px rgba(255, 255, 255, 0.6),
+                         0 0 80px rgba(255, 255, 255, 0.4);
+            letter-spacing: 0.2em;
+            text-align: center;
+            pointer-events: none; /* 避免遮擋 3D 模型的滑鼠拖曳控制 */
+            z-index: 10;
+            animation: fadeLoop 4s infinite alternate ease-in-out;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 768px) {
+            .fade-text {
+                font-size: 6vw;
+                letter-spacing: 0.1em;
+                top: 20%;
+            }
+        }
+
+        @keyframes fadeLoop {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        /* 控制按鈕介面 */
+        #ui-container {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            display: flex;
+            gap: 15px;
+            pointer-events: auto;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            padding: 12px 24px;
+            color: white;
+            cursor: pointer;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 標題文字 -->
+    <div class="fade-text">淡水北海岸生態環境科學教育</div>
+
+    <!-- Sketchfab 3D 渲染容器 -->
+    <div class="sketchfab-embed-wrapper"> 
+        <iframe title="Aetherwing Turtle" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport execution-while-not-rendered web-share src="https://sketchfab.com/models/576d52953d854989ada7e05082f69c63/embed"> </iframe> 
+        <p style="font-size: 13px; font-weight: normal; margin: 5px;"> 
+            <a href="https://sketchfab.com/3d-models/aetherwing-turtle-576d52953d854989ada7e05082f69c63" target="_blank" rel="nofollow" style="font-weight: bold;"> Aetherwing Turtle </a> by <a href="https://sketchfab.com/barbodoji" target="_blank" rel="nofollow" style="font-weight: bold;"> barbodoji </a> on <a href="https://sketchfab.com" target="_blank" rel="nofollow" style="font-weight: bold;">Sketchfab</a>
+        </p>
+    </div>
+
+    <!-- 海浪環境音 -->
+    <audio id="ocean-audio" loop>
+        <!-- 使用開源免版稅的自然海浪聲 -->
+        <source src="https://www.soundjay.com/nature/sounds/ocean-wave-1.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- UI 控制區塊 -->
+    <div id="ui-container">
+        <div id="audio-toggle" class="btn">
+            ▶ 播放環境音效 (海浪)
+        </div>
+    </div>
+
+    <script>
+        // 處理海浪環境音的播放與暫停
+        document.addEventListener('DOMContentLoaded', () => {
+            const audioBtn = document.getElementById('audio-toggle');
+            const oceanAudio = document.getElementById('ocean-audio');
+            let isPlaying = false;
+
+            // 調整音量，使其作為柔和的背景音
+            oceanAudio.volume = 0.4;
+
+            audioBtn.addEventListener('click', () => {
+                if (isPlaying) {
+                    oceanAudio.pause();
+                    audioBtn.innerText = "▶ 播放環境音效 (海浪)";
+                    audioBtn.style.background = "rgba(255, 255, 255, 0.15)";
+                    isPlaying = false;
+                } else {
+                    oceanAudio.play().catch(e => console.log("音訊播放被阻擋", e));
+                    audioBtn.innerText = "⏸ 暫停環境音效";
+                    audioBtn.style.background = "rgba(255, 255, 255, 0.4)";
+                    isPlaying = true;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
